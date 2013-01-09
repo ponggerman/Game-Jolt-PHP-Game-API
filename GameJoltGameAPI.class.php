@@ -152,13 +152,12 @@ class GameJoltGameAPI
 	}
 	
 	public function getVerifiedUser() {
-		if ($this->verified == false) {
-			return new GJUser();
-		}
+		if ($this->verified == false) {	return new GJUser(); }
 		$response = $this->request("users/", "username=" . $this->username);
-		if (strpos($response, "success:\"true\"") === FALSE) {
-			if ($this->verbose) { echo "GameJoltGameAPI: Could not get User with User " . $this->username . ".<br/>"; }
-			return null;
+		try { 
+			if (!$this->wasSuccess($response)) { throw new Exception('Error: Unable to get Verified User'); }
+		} catch (Exception $e) {
+			if ($this->verbose) { print $e->getMessage(); }
 		}
 		$lines = explode("\n", $response);
 		$user = new GJUser();
@@ -198,7 +197,26 @@ class GameJoltGameAPI
     	}
     	return false;
 	}
-	
+		
+	public function setData($data, $global = true) {
+		switch ($global) {
+			case true:
+				$response = $this->request('data-store/set/', 'data=' . $data);
+				try {
+					if (!$this->wasSuccess($response)) { throw new Exception('Error: Unable to set Global Data'); }
+				} catch (Exception $e) {
+					if ($this->verbose) { print $e->getMessage(); }
+				}
+				break;
+			case false: 
+				$response = $this->request('data-store/set/', 'data=' . $data . '&username=' . $this->username . '&user_token=' . $this->usertoken);
+				try {
+					if (!$this->wasSuccess($response)) { throw new Exception('Error: Unabled to set User Data'); }
+				} catch (Exception $e) {
+					if ($this->verbose) { print $e->getMessage(); }
+				}
+		}
+	}
 	/**
 	 * Perform a GameJolt API request.
 	 * Use this one if you know your HTTP requests.
@@ -301,6 +319,12 @@ class GameJoltGameAPI
         curl_close($crl);
         return $ret;
 	}
+	
+	function wasSuccess($response) {
+		return (strpos($response, "success:\"true\""));
+	}
+	
+	
 }
 
 
