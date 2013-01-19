@@ -1,5 +1,141 @@
 <?php
 /**
+ * GameJolt API
+ * Updated PHP API to be more streamlined
+ *
+ * @version 0.1
+ * @author: Pong + credit to Ashley
+ * @copyright: PongGaming
+ * @project: Framework
+ * @year: 2012
+ */
+ class GameJoltAPI
+ {
+	private $protocol = 'http://'; //Protocol used in API
+	private $root = 'gamejolt.com/api/game/'; //Root of the API, used by everything
+	private $ver = 'v1'; //What version of the API that is being used
+	private $return = 'json';  //What return type to use	
+	
+	private $gID; //ID of the Game
+	private $pKey; //Private key of the Game
+	private $uID; //ID of the user
+	private $uName; //Name of the user
+	private $uToken; //Token of user
+	private $uSession; //Session of user(?)
+	
+	private $verified = false; //If user is verified
+	private $cURL = false; //If using cURL
+	private $verbose = true; //If exceptions are thrown for you to catch
+	
+	/**
+	 * Create a new GameJoltAPI instance
+	 * If you do not add in the user parameters then you will need to call it after
+	 * @param $gameID : the identifier for your game (Required)
+	 * @param $privateKey : the private key for your game (Required)
+	 * @param $userID : the identifier of the user (Optional, default: blank)
+	 * @param $userName: the username of the user (Optional, default: blank)
+	 * @param $userToken: the token of the user (Optional, default: blank)
+	 * @param $cURL : if framework should use cURL (Optional, default: false)
+	 * @param $verbose : if framework should be verbose (Optional, default: true)
+	 */
+	public function __construct($gameID, $privateKey, $userID = '', $userName = '', $userToken = '', $cURL = false, $verbose = true) {
+		$this->gID = $gameID;
+		$this->pKey = $privateKey;
+		if ($userID) {$this->uID = $userID}
+		if ($userName) {$this->uName = $userName}
+		if ($userToken) {$this->uToken = $userToken}
+		$this-cURL = $cURL;
+		$this-verbose = $verbose;
+		/** TODO: Add in user verification and session managment **/
+	}
+	
+	/**
+	 * Preform a GameJolt API request
+	 * Use this raw if need be, but otherwise don't
+	 * @param method : The API method(?) to call. I.E. 'users/auth'
+	 * @param params : The parameters to send to the API
+	 */
+	public function request($method, $params) {
+		$url = $this->protocol . $this->root . $this->ver . '/' . $method . '?game_id=' . $this->gID;  //create base uri
+		foreach($params as $key => $val) {
+			$url .= '&' . $key . '=' . $val;
+		}
+		$url .= '&key=' . md5($url); 
+		if ($this->cURL) {
+			$data = curl_get_contents($url);
+		} else {
+			$data = curl_get_contents($url);
+		}
+		return $data;
+	}
+	
+	private function curl_get_contents($url) {
+		$curl = curl_init();
+		$timeout = 5;
+		curl_setopt($curl, CURLOPT_URL. $url);
+		curl_setopt($curl, CURLOPT_RETURNTTRANSFER, 1);
+		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, $timeout);
+		$ret = curl_exec($curl);
+		curl_close($curl);
+		return $ret;
+	}
+	
+ }
+ 
+/**
+ * GameJoltObject
+ * Class to hold the properties of an object
+ */
+class GameJoltObject
+{
+	private $properties;
+	
+	/** 
+	 * Create a new GameJoltObject instance
+	 * Turns class variable $properties into an array
+	 * @param none
+	 * @return none
+	 */
+	public function __construct() {
+		$this->properties = array();
+	}
+	
+	/**
+	 * Add a property to the array
+	 * @param $key : the property name
+	 * @param $value : the property value
+	 **/
+	public function addProperty($key, $value) {
+		$this->properties[$key] = $value;
+	}
+	
+	/** 
+	 * Get a property from the array
+	 * @param $key : the property name
+	 **/
+	public function getProperty($key) {
+		return $this->properties[$key];
+	}
+	
+	/**
+	 * Unset a property from the array
+	 * @param $key : the property name
+	 **/
+	public function unsetProperty($key) {
+		return unset($this->properties[$key]);
+	}
+}
+
+class GameJoltUser extends GameJoltObject
+{
+	/** TODO: Add in User specific function **/
+}
+
+class GameJoltTrophy extends GameJoltObject
+{
+	/** TODO: Add in Trophy specific function **/
+}<?php
+/**
  * GameJoltTrophyAPI
  * Ported straight from the Java API into PHP.
  * 
